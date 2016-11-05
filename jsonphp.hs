@@ -3,7 +3,8 @@
 import Data.Vector as V (toList)
 import Data.HashMap.Strict as HM (toList)
 import Data.Aeson
-import Data.Text (Text)
+import Data.Scientific (formatScientific, FPFormat (Fixed))
+import Data.Text (Text, unpack)
 import Data.List
 import Data.ByteString.Lazy.UTF8 (fromString) 
 
@@ -20,8 +21,8 @@ jsonStr = fromString "[44, {\"x\": 123, \"name\": \"John\", \"age\": 20}, {\"age
 jsonStr2 = fromString "[\"foo\", 55]"
 
 phpValue :: Int -> Value -> String
-phpValue d (String v) = show v
-phpValue d (Number v) = show v
+phpValue d (String v) = "\'" ++ unpack v ++ "\'"
+phpValue d (Number v) = (formatScientific Fixed (Just 0) v) -- may break for complex num formats
 -- phpValue d (Bool v) = show v
 -- phpValue d Null = show v
 phpValue d (Object v) = "[" ++ (ovals (d+1) v) ++ (itemIndent d) ++ "]"
@@ -37,7 +38,7 @@ sings :: Int -> Value -> String
 sings depth v = (itemIndent depth) ++ (phpValue depth v) ++ ","
 
 tupes :: Int -> (Text, Value) -> String
-tupes depth (k, v) = (itemIndent depth) ++ show k ++ " => " ++ (phpValue depth v) ++ ","
+tupes depth (k, v) = (itemIndent depth) ++ "'" ++ (unpack k) ++ "' => " ++ (phpValue depth v) ++ ","
 
 itemIndent :: Int -> String
 itemIndent depth = "\n" ++ (concat $ replicate depth "    ")
