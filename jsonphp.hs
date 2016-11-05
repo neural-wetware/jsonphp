@@ -7,18 +7,16 @@ import Data.Scientific (formatScientific, FPFormat (Fixed))
 import Data.Text (Text, unpack)
 import Data.List
 import Data.ByteString.Lazy.UTF8 (fromString) 
+import qualified Data.ByteString.Lazy as LBS
 
 main :: IO ()
 main = do
-        putStr $ xxx (decode jsonStr :: Maybe Value)
+    jsonStr <- LBS.getContents
+    putStr $ xxx (decode jsonStr :: Maybe Value)
 
 xxx :: Maybe Value -> String
 xxx (Just x) = phpValue 0 x
 xxx Nothing = "ERROR"
-
-jsonStr = fromString "[44, {\"x\": 123, \"name\": \"John\", \"age\": 20}, {\"age\": 30, \"name\": \"Frank\"} ]"
-
-jsonStr2 = fromString "[\"foo\", 55]"
 
 phpValue :: Int -> Value -> String
 phpValue d (String v) = "\'" ++ unpack v ++ "\'"
