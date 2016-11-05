@@ -9,7 +9,7 @@ import Data.ByteString.Lazy.UTF8 (fromString)
 
 main :: IO ()
 main = do
-        print $ xxx (decode jsonStr :: Maybe Value)
+        putStr $ xxx (decode jsonStr :: Maybe Value)
 
 xxx :: Maybe Value -> String
 xxx (Just x) = phpValue 0 x
@@ -24,14 +24,20 @@ phpValue d (String v) = show v
 phpValue d (Number v) = show v
 -- phpValue d (Bool v) = show v
 -- phpValue d Null = show v
-phpValue d (Object v) = "[" ++ (ovals d v) ++ "]"
-phpValue d (Array v) = "[" ++ (vals d v) ++ "]"
+phpValue d (Object v) = "[" ++ (ovals (d+1) v) ++ (itemIndent d) ++ "]"
+phpValue d (Array v) = "[" ++ (vals (d+1) v) ++ (itemIndent d) ++ "]"
 
 vals :: Int -> Array -> String
-vals depth x = intercalate ", " $ map (phpValue depth) $ V.toList x
+vals depth x = concat $ map (sings depth) $ V.toList x
 
 ovals :: Int -> Object -> String
-ovals depth x = intercalate ", " $ map (tupes depth) $ HM.toList x
+ovals depth x = concat $ map (tupes depth) $ HM.toList x
+
+sings :: Int -> Value -> String
+sings depth v = (itemIndent depth) ++ (phpValue depth v) ++ ","
 
 tupes :: Int -> (Text, Value) -> String
-tupes depth (k, v) = show k ++ " => " ++ (phpValue depth v)
+tupes depth (k, v) = (itemIndent depth) ++ show k ++ " => " ++ (phpValue depth v) ++ ","
+
+itemIndent :: Int -> String
+itemIndent depth = "\n" ++ (concat $ replicate depth "    ")
