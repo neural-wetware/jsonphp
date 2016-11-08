@@ -3,21 +3,20 @@
 import Data.Vector as V (toList)
 import Data.HashMap.Strict as HM (toList)
 import Data.Aeson
+import Data.Aeson.Types
 import Data.Bool (bool)
 import Data.Scientific (formatScientific, FPFormat (Fixed))
-import Data.Text (Text, unpack)
-import Data.List
-import Data.ByteString.Lazy.UTF8 (fromString) 
+import Data.Text (unpack)
 import qualified Data.ByteString.Lazy as LBS
 
 main :: IO ()
 main = do
     jsonStr <- LBS.getContents
-    putStr $ xxx (decode jsonStr :: Maybe Value)
+    putStrLn $ jsonToPHP $ decode jsonStr
 
-xxx :: Maybe Value -> String
-xxx (Just x) = phpValue 0 x
-xxx Nothing = "ERROR"
+jsonToPHP :: Maybe Value -> String
+jsonToPHP (Just x) = phpValue 0 x
+jsonToPHP Nothing = "ERROR"
 
 phpValue :: Int -> Value -> String
 phpValue d (String v) = "\'" ++ unpack v ++ "\'"
@@ -28,15 +27,15 @@ phpValue d (Object v) = "[" ++ (ovals (d+1) v) ++ (itemIndent d) ++ "]"
 phpValue d (Array v) = "[" ++ (vals (d+1) v) ++ (itemIndent d) ++ "]"
 
 vals :: Int -> Array -> String
-vals depth x = concat $ map (sings depth) $ V.toList x
+vals depth x = concatMap (sings depth) $ V.toList x
 
 ovals :: Int -> Object -> String
-ovals depth x = concat $ map (tupes depth) $ HM.toList x
+ovals depth x = concatMap (tupes depth) $ HM.toList x
 
 sings :: Int -> Value -> String
 sings depth v = (itemIndent depth) ++ (phpValue depth v) ++ ","
 
-tupes :: Int -> (Text, Value) -> String
+tupes :: Int -> Pair -> String
 tupes depth (k, v) = (itemIndent depth) ++ "'" ++ (unpack k) ++ "' => " ++ (phpValue depth v) ++ ","
 
 itemIndent :: Int -> String
